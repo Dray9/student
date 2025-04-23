@@ -1,6 +1,7 @@
 import { RevealOnScroll } from "../components/RevealOnScroll.jsx";
 import ImageSrc from "../assets/react.svg";
 import { About } from "./About";
+import { Contact } from "./Contact";
 
 export const Home = () => {
     return (
@@ -37,6 +38,8 @@ export const Home = () => {
             
             {/* Include About section directly */}
             <About />
+            {/* Include Contact section directly */}
+            <Contact />
         </div>
     );
 };
