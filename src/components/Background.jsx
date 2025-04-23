@@ -2,25 +2,48 @@ import { useEffect, useState, useRef } from 'react';
 
 export default function Background() {
   const canvasRef = useRef(null);
+  const containerRef = useRef(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   
   useEffect(() => {
-    // Set initial dimensions
-    setDimensions({
-      width: window.innerWidth,
-      height: window.innerHeight
-    });
-    
-    // Handle resize
-    const handleResize = () => {
+    // Function to update dimensions based on container and document size
+    const updateDimensions = () => {
+      if (!containerRef.current) return;
+      
+      // Get the full document height
+      const docHeight = Math.max(
+        document.body.scrollHeight,
+        document.documentElement.scrollHeight,
+        document.body.offsetHeight,
+        document.documentElement.offsetHeight,
+        document.body.clientHeight,
+        document.documentElement.clientHeight
+      );
+      
       setDimensions({
         width: window.innerWidth,
-        height: window.innerHeight
+        height: Math.max(docHeight, window.innerHeight) // Use the larger of document height or viewport height
       });
     };
     
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    // Initial dimension setup
+    updateDimensions();
+    
+    // Set up resize observer to detect content changes
+    const resizeObserver = new ResizeObserver(() => {
+      updateDimensions();
+    });
+    
+    // Observe document body for content changes
+    resizeObserver.observe(document.body);
+    
+    // Also handle window resize
+    window.addEventListener('resize', updateDimensions);
+    
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', updateDimensions);
+    };
   }, []);
   
   useEffect(() => {
@@ -33,7 +56,7 @@ export default function Background() {
     
     // Particle settings with different shapes
     const particles = [];
-    const particleCount = Math.floor(dimensions.width * dimensions.height / 5000); // Increased particle count
+    const particleCount = Math.floor(dimensions.width * dimensions.height / 5000); // Adjusted for larger area
     
     for (let i = 0; i < particleCount; i++) {
       particles.push({
@@ -246,7 +269,11 @@ export default function Background() {
   }, [dimensions]);
   
   return (
-    <div className="relative w-full h-screen bg-black overflow-hidden">
+    <div 
+      ref={containerRef} 
+      className="relative w-full min-h-screen bg-black overflow-hidden"
+      style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: -1 }}
+    >
       <canvas 
         ref={canvasRef} 
         className="absolute top-0 left-0 w-full h-full"
